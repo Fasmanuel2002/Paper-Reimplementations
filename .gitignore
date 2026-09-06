@@ -1,0 +1,28 @@
+# Ignorar imágenes comunes
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.webp
+*.h5
+*.csv
+*.pyc
+*.json
+*.pt
+# Ignorar datasets grandes
+
+
+# Excepciones: Permitir las imágenes de mi proyecto Seq2Seq
+!Weight_distribution_seq2seq.png
+!Weight_distribution_attention.png
+!LossCurveWithoutAttention.png
+!lossCurveAttention.png
+!output.png
+
+# Exceptions: permit images from GPT model
+!gpt_decoder_only.png
+!AndrejKaparthyVideoGPT.jpg
+!learning_curves_gpt.png
+!best_attention_matrix_gpt.png
