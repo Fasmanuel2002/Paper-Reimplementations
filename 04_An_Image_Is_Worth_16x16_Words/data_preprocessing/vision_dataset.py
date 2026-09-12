@@ -18,6 +18,7 @@ class imagenette2Dataset:
             return T.Compose([
                 T.RandomResizedCrop(image_size),
                 T.RandomHorizontalFlip(),
+                T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), #Augmentation
                 T.ToTensor(),
                 T.Normalize(mean=self.IMAGENET_MEAN, std=self.IMAGENET_STD)
             ])
@@ -29,7 +30,7 @@ class imagenette2Dataset:
                 T.ToTensor(),
                 T.Normalize(mean=self.IMAGENET_MEAN, std=self.IMAGENET_STD)
             ])
-    
+            
     def create_dataloaders(self, num_workers : int = 4) -> Tuple[DataLoader, DataLoader]:
         train_transform = self.transforms(image_size=self.image_size, is_train=True)
         validation_transform = self.transforms(image_size=self.image_size, is_train=False)
