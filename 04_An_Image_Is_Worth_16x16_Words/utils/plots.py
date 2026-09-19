@@ -28,7 +28,16 @@ def plot_confusion_matrix(y_true, y_pred, class_names):
 
 def visualize_attention_weights(image_tensor : torch.Tensor, attention_weights, patch_size : int = 16):
     
-    
+    print(attention_weights.shape)
+    if isinstance(attention_weights, (list, tuple)):
+        attention_weights = attention_weights[-1]  # Take the last layer defect
+        
+    if attention_weights.dim() == 5:
+        attention_weights = attention_weights[:, -1, :, :, :]  # (batch, layers, heads, tokens, tokens) -> last layer
+        
+    if attention_weights.dim() == 4:
+        attention_weights = attention_weights.squeeze(0)
+        
     #Make the avarage of the attention weights across all heads, so we have and consesus and layers and eliminate the batch dimension
     avg_attention_weights = torch.mean(attention_weights, dim=1).squeeze(0).cpu().detach()
     
