@@ -5,7 +5,7 @@ from utils.EarlyStopping import EarlyStopping
 from data_preprocessing.vision_dataset import imagenette2Dataset
 from model.ViT import VisionTransformer
 import tqdm
-from utils.train_val_fn import train_function, validation_function
+from utils.train_val_test_fn import train_function, validation_function
 from torch.utils.tensorboard import SummaryWriter # type: ignore
 
 def main():
@@ -50,7 +50,7 @@ def main():
                                        patch_size=patch_size,
                                        image_size=image_size,
                                        num_classes=n_classes,
-                                       device=device).to(device)
+                                       device=device).to(device) # pyright: ignore[reportArgumentType]
     
     optimizer = torch.optim.AdamW(vision_transformer.parameters(), lr=3e-4, weight_decay=0.05)
 
@@ -68,9 +68,9 @@ def main():
     tensor_board_writer = SummaryWriter(log_dir=f"runs")
     
     for epoch in tqdm.tqdm(range(num_epochs), desc="Training Progress"):
-        train_loss = train_function(vision_transformer, train_loader, optimizer, device)
+        train_loss = train_function(vision_transformer, train_loader, optimizer, device) # type: ignore
         
-        val_loss, val_acc = validation_function(vision_transformer, validation_loader, device )
+        val_loss, val_acc = validation_function(vision_transformer, validation_loader, device ) # type: ignore
         
         # Step the learning rate scheduler every epoch
         lr_scheduler.step()
