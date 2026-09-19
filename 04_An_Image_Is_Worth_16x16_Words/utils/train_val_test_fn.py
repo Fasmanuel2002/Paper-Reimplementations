@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from model.ViT import VisionTransformer
 from typing import Tuple
 from sklearn.metrics import accuracy_score, classification_report, f1_score
-
+from utils.plots import plot_confusion_matrix
 
 def train_function(
     vision_model : VisionTransformer,
@@ -66,7 +66,7 @@ def test_function(
     vision_model : VisionTransformer,
     test_loader : DataLoader,
     device : str
-    ):
+    ) -> Tuple:
     
     vision_model.eval()
     test_loss = 0.0
@@ -95,8 +95,7 @@ def test_function(
             test_loss += loss.item()
     
     test_loss /= len(test_loader)
-    test_accuracy = test_correct / max(test_total, 1)
-    
+    test_accuracy = accuracy_score(y_true_all_labels, y_pred_all_predictions)
     macro_f1 = f1_score(y_true_all_labels, y_pred_all_predictions, average="macro")
     weighted_f1 = f1_score(y_true_all_labels, y_pred_all_predictions, average="weighted")
     print(f"Test Loss: {test_loss:.4f}")
@@ -108,6 +107,9 @@ def test_function(
     print("Classification Report")
     print(classification_report(y_true_all_labels, y_pred_all_predictions, digits=4))
 
+    class_names = ['tench', 'springer', 'cassette', 'chain saw', 'church', 
+                'french horn', 'garbage truck', 'gas pump', 'golf ball', 'parachute']
+    plot_confusion_matrix(y_true_all_labels, y_pred_all_predictions, class_names)   
     return test_loss, test_accuracy, macro_f1, weighted_f1
     
     

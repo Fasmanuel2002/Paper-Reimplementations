@@ -20,7 +20,9 @@ def plot_confusion_matrix(y_true, y_pred, class_names):
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
+    plt.savefig("confusion_matrix.png", bbox_inches='tight', dpi=300)
     plt.show()
+    print("Confusion matrix saved to confusion_matrix.png")
 
 
 
@@ -64,5 +66,7 @@ def visualize_attention_weights(image_tensor : torch.Tensor, attention_weights, 
     axest[1].set_title('Attention Map Overlay, [CLS]')
     axest[1].axis('off')
     
+    plt.savefig("attention_map_overlay.png", bbox_inches='tight', dpi=300)
+    print("Attention map saved to attention_map_overlay.png")
     plt.show()
     

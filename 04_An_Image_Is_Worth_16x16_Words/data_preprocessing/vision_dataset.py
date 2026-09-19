@@ -51,3 +51,14 @@ class imagenette2Dataset:
                                            pin_memory=True
                                            )
         return train_dataloader, validation_dataloader
+    
+    def create_test_dataloader(self, num_workers : int = 4) -> DataLoader:
+        test_transform = self.transforms(image_size=self.image_size, is_train=False)
+        test_dataset = ImageFolder(root=self.data_path, transform=test_transform)
+        
+        test_dataloader = DataLoader(test_dataset, 
+                                     batch_size=self.batch_size, 
+                                     shuffle=False,
+                                     num_workers=num_workers,
+                                     pin_memory=True)
+        return test_dataloader
