@@ -53,29 +53,44 @@ def main():
                                            device=device).to(device) # pyright: ignore[reportArgumentType]
     
    
-    vision_transformer.load_state_dict(torch.load('best_model_vit_small.pt', map_location=device, weights_only=False))
+    vision_transformer.load_state_dict(torch.load('best_model_vit_small.pt', map_location=device, weights_only=True))
     
     
     #Froze all the previous layers because we are making the finetuning
     for param in vision_transformer.parameters():
         param.requires_grad = False
-        
+
+    for blocks in vision_transformer.encoder_blocks[-2:]: #Taking the last two transformers blocks
+        for param in blocks.parameters():
+            param.requires_grad = True
+
+    for param in vision_transformer.layer_normalization_final.parameters(): # Unfreozen the final LayerNorm from the final to make the prediction
+        param.requires_grad = True
+
     vision_transformer.final_head_mlp = nn.Linear(in_features=d_dimensionality, out_features=number_classes_birds).to(device)
+
+    parameters_fine_tuning = filter(lambda p : p.requires_grad, vision_transformer.parameters())
     
-    optimizer_fine_tuning = torch.optim.AdamW(vision_transformer.final_head_mlp.parameters(), lr=3e-4, weight_decay=0.05)
+    optimizer_fine_tuning = torch.optim.AdamW(parameters_fine_tuning, lr=1e-5, weight_decay=0.05)
     
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer_fine_tuning, 
-            T_max=100, 
+            T_max=50, 
             eta_min=1e-6)
     
-    print(f"Model parameters that are being Finetuned: {sum(p.numel() for p in vision_transformer.final_head_mlp.parameters())/1e6:.2f} M parameters")
-    
+    print(f"Model parameters that are being Finetuned: {sum(p.numel() for p in vision_transformer.parameters() if p.requires_grad)/1e6:.2f} M parameters")
+
+
     print("Finetuning of the Vision Transformer is starting")
     
     
     tensor_board_writer = SummaryWriter(log_dir=f"runs_finetuning")
-    
+
+     # Grab a single batch from the validation loader
+    images, labels = next(iter(validation_loader))            
+    img_grid = torchvision.utils.make_grid(images[:16], normalize=True)
+    tensor_board_writer.add_image("Sample_Validation_Images", img_grid, 0)
+
     for epoch in tqdm.tqdm(range(num_epochs), desc="Training Progress"):
             train_loss = train_function(vision_transformer, train_loader, optimizer_fine_tuning, device) # type: ignore
             
@@ -83,8 +98,11 @@ def main():
             
             # Step the learning rate scheduler every epoch
             lr_scheduler.step()
-            
-            print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f} | Valid Loss: {val_loss:.4f} | Valid Acc: {val_acc * 100:.2f}%")
+
+            #Current learning rate of the epoch
+            current_learning_rate = optimizer_fine_tuning.param_groups[0]['lr']
+
+            print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f} | Valid Loss: {val_loss:.4f} | Valid Acc: {val_acc * 100:.2f}%, | Learning Rate: {current_learning_rate}")
             
             early_stopping(val_acc, vision_transformer)
             tensor_board_writer.add_scalars("Loss", {
@@ -93,12 +111,9 @@ def main():
                         }, epoch)
             
             tensor_board_writer.add_scalar("Accuracy/Val", val_acc, epoch)
-            # Grab a single batch from the validation loader
-            images, labels = next(iter(validation_loader))
-            
-            img_grid = torchvision.utils.make_grid(images[:16], normalize=True)
-            tensor_board_writer.add_image("Sample_Validation_Images", img_grid, epoch)
-                    
+
+            tensor_board_writer.add_scalar("Learning_rate", current_learning_rate, epoch)
+
             if early_stopping.early_stop:
                 print("Finished because of the early Stopping")
                 break 
