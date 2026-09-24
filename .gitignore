@@ -29,3 +29,9 @@
 !PyTorch-Logo.png
 !TransformerEncoderOnly_VIT.png
 !Vision_transformer_patch_embedding.png
+!pre_training_VIT.png
+!img_15_pred_springer.png
+!img_55_pred_french_horn.png
+!img_91_pred_parachute.png
+!confusion_matrix.png
+!fine_tuning_vit_loss_curves.png
