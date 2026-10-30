@@ -14,7 +14,7 @@ class FTTransformer(nn.Module):
         number_layers: int, 
         num_classes: int = 1,
         dropout: float = 0.2,
-        device):
+        device : str = ""):
         super().__init__()
 
         self.device = device
