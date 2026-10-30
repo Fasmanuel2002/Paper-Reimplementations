@@ -1,0 +1,22 @@
+[project]
+name = "paper-reimplementations"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Manuel", email = "manuelfasruiz@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.4",
+    "pandas>=3.1.0",
+    "scikit-learn>=1.9.1",
+    "torch>=2.15.0",
+]
+
+[project.scripts]
+paper-reimplementations = "paper_reimplementations:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
