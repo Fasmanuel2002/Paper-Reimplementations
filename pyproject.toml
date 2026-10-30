@@ -6,17 +6,24 @@ readme = "README.md"
 authors = [
     { name = "Manuel", email = "manuelfasruiz@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
-    "numpy>=2.5.4",
-    "pandas>=3.1.0",
-    "scikit-learn>=1.9.1",
-    "torch>=2.15.0",
+    "numpy>=2.1.0",
+    "pandas>=2.2.0",
+    "scikit-learn>=1.5.0",
+    "tensorboard>=2.21.0",
+    "torch",
+    "tqdm",
 ]
 
-[project.scripts]
-paper-reimplementations = "paper_reimplementations:main"
+[tool.uv]
+package = false
 
-[build-system]
-requires = ["uv_build>=0.12.17,<0.13.0"]
-build-backend = "uv_build"
+[[tool.uv.index]]
+name = "pytorch-cuda"
+# Replace cu124 with cu121, cu126, or cpu depending on your setup
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cuda" }
