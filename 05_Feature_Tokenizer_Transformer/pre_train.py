@@ -62,7 +62,15 @@ def main():
                                         dropout=dropout,
                                         device=device).to(device)
 
-    criterion = nn.BCEWithLogitsLoss()
+    #Class Imbalance in target
+    num_negatives = (df_train["target"] == 0).sum()
+    num_positives = (df_train["target"] == 1).sum()
+    
+    #Class imbalance in target
+    pos_weight = torch.tensor([num_negatives / num_positives], dtype=torch.float32, device=device)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    
+    
     optimizer = torch.optim.AdamW(FT_transformer.parameters(), lr=learning_rate, weight_decay=0.05)
     early_stopping = EarlyStopping(patience=patience, mode="max", verbose=True, path='best_model.pt')
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=num_epochs, eta_min=1e-6)
