@@ -1,3 +1,4 @@
+import numpy as np
 import torch 
 import tqdm
 import torch.nn as nn
@@ -25,7 +26,8 @@ def main():
     num_workers = 4
     learning_rate  = 3e-4
     num_epochs = 100
-    
+    thresholds = np.linspace(0.01, 0.99, 99)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("GPU is avaible:", torch.cuda.is_available())
     if torch.cuda.is_available():
@@ -82,10 +84,11 @@ def main():
     for epoch in tqdm.tqdm(range(num_epochs), desc="Training Progress"):
         train_loss = train_function(FT_transformer, train_loader, optimizer, criterion, device)
         
-        val_loss, val_epoch_accuracy, val_epoch_f1 = validation_function(FT_transformer, val_loader, criterion, device)
+        val_loss, val_epoch_accuracy, val_epoch_f1, val_best_treshold, val_auprc, val_auroc, val_epoch_precision, val_epoch_recall = validation_function(FT_transformer, val_loader, criterion, thresholds, device)
     
-        print(f"Epoch {epoch+1} | Val Loss: {val_loss:.4f} | Val Acc: {val_epoch_accuracy:.4f} | Binary F1: {val_epoch_f1:.4f}")
-        
+        print(f"Epoch {epoch+1} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_epoch_accuracy:.4f} | Binary F1: {val_epoch_f1:.4f}, ")
+        print(f"Best Threshold: {val_best_treshold:.4f} | AUPRC: {val_auprc:.4f} | AUROC: {val_auroc:.4f} | Precision: {val_epoch_precision:.4f} | Recall: {val_epoch_recall:.4f}")
+                
         # Step the learning rate scheduler every epoch
         lr_scheduler.step()
         
@@ -97,6 +100,11 @@ def main():
         
         tensor_board_writer.add_scalar("Metric/Val-Acc", val_epoch_accuracy, epoch)
         tensor_board_writer.add_scalar("Metric/Binary-F1", val_epoch_f1, epoch)
+        tensor_board_writer.add_scalar("Metric/Best-Threshold", val_best_treshold, epoch)
+        tensor_board_writer.add_scalar("Metric/AUPRC", val_auprc, epoch)
+        tensor_board_writer.add_scalar("Metric/AUROC", val_auroc, epoch)
+        tensor_board_writer.add_scalar("Metric/Precision", val_epoch_precision, epoch)
+        tensor_board_writer.add_scalar("Metric/Recall", val_epoch_recall, epoch)
 
         
         if early_stopping.early_stop:
