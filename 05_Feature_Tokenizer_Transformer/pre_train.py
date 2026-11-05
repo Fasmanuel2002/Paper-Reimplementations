@@ -87,12 +87,12 @@ def main():
         val_loss, val_epoch_accuracy, val_epoch_f1, val_best_treshold, val_auprc, val_auroc, val_epoch_precision, val_epoch_recall = validation_function(FT_transformer, val_loader, criterion, thresholds, device)
     
         print(f"Epoch {epoch+1} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_epoch_accuracy:.4f} | Binary F1: {val_epoch_f1:.4f}, ")
-        print(f"Best Threshold: {val_best_treshold:.4f} | AUPRC: {val_auprc:.4f} | AUROC: {val_auroc:.4f} | Precision: {val_epoch_precision:.4f} | Recall: {val_epoch_recall:.4f}")
+        print(f"Best Threshold: {val_best_treshold:.4f} | AUPRC: {val_auprc:.4f} | AUROC: {val_auroc:.4f} | Norm Gini: {2*val_auroc-1:.4f} | Precision: {val_epoch_precision:.4f} | Recall: {val_epoch_recall:.4f}")
                 
         # Step the learning rate scheduler every epoch
         lr_scheduler.step()
         
-        early_stopping(val_auprc, FT_transformer)
+        early_stopping(val_auroc, FT_transformer)
         tensor_board_writer.add_scalars("Loss", {
                     "Train": train_loss,
                     "Val": val_loss
@@ -103,6 +103,7 @@ def main():
         tensor_board_writer.add_scalar("Metric/Best-Threshold", val_best_treshold, epoch)
         tensor_board_writer.add_scalar("Metric/AUPRC", val_auprc, epoch)
         tensor_board_writer.add_scalar("Metric/AUROC", val_auroc, epoch)
+        tensor_board_writer.add_scalar("Metric/Norm-Gini", 2 * val_auroc - 1, epoch)
         tensor_board_writer.add_scalar("Metric/Precision", val_epoch_precision, epoch)
         tensor_board_writer.add_scalar("Metric/Recall", val_epoch_recall, epoch)
 
