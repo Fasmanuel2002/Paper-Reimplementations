@@ -92,7 +92,7 @@ def main():
         # Step the learning rate scheduler every epoch
         lr_scheduler.step()
         
-        early_stopping(val_epoch_f1, FT_transformer)
+        early_stopping(val_auprc, FT_transformer)
         tensor_board_writer.add_scalars("Loss", {
                     "Train": train_loss,
                     "Val": val_loss
