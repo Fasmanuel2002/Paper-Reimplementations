@@ -7,7 +7,8 @@ from data.preprocess import Preprocess
 from model.FT_transformer import FTTransformer
 from utils.train_val_test_fn import validation_function, test_function
 from data.dataset import FTTDataset
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 def main():
     checkpoint_path = "best_model.pt"   
     n_layers = 8                       
@@ -61,6 +62,33 @@ def main():
 
     print(f"Test | Loss: {test_loss:.4f} | Acc: {test_acc:.4f} | F1: {test_f1:.4f}")
     print(f"Test | AUPRC: {test_auprc:.4f} | AUROC: {test_auroc:.4f} | Norm Gini: {2*test_auroc-1:.4f} | Precision: {test_precision:.4f} | Recall: {test_recall:.4f}")
+
+    #Creating the attention maps for the test set
+    x_categorical, x_continous, _ = next(iter(test_loader))
+    x_categorical = x_categorical.to(device)
+    x_continuous = x_continous.to(device)
+
+    with torch.no_grad():
+        _, attention_maps = FT_transformer(x_categorical, x_continuous)
+
+    #Extract the last layer for attention maps in the first index of the batch
+    sample_attention = attention_maps[0, -1]
+    avg_head_attention = torch.mean(sample_attention, dim=-1).cpu().numpy()
+
+    # Attention [CLS] token for each feature
+    cls_attention_to_features = avg_head_attention[0, 1:]
+    features_names = list(encoder_columns) + [col for col in df_train.columns if col not in encoder_columns and col != 'target']
+
+    # Plotting the attention scores for each feature
+    plt.figure(figsize=(12, 6))
+    sns.barplot(x=features_names, y=cls_attention_to_features, palette="magma")
+    plt.xticks(rotation=45, ha='right')
+    plt.xlabel("Features")
+    plt.ylabel("Attention Score")
+    plt.title("Feature Importance based on Attention Scores")
+    plt.savefig("attention_scores.png", bbox_inches='tight', dpi=300)
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     main()
