@@ -19,7 +19,7 @@ Each reimplementation focuses on translating the concepts and architectures desc
 | 03 | [Predicting Issue Types with seBERT](./03_Predicting_Issue_Types_with_seBERT) | [Trautsch & Herbold (2022)](https://arxiv.org/abs/2205.01335) | NLP | 🟢 |
 | 04 | [An Image Is Worth 16×16 Words](./04_An_Image_Is_Worth_16x16_Words) | [Dosovitskiy et al. (2020)](https://arxiv.org/abs/2010.11929) | Computer Vision / Transformers | 🟢 |
 | 05 | [Revisiting Deep Learning Models for Tabular Data](./05_Revisiting%20Deep%20Learning%20Models%20for%20Tabular%20Data) | [Gorishniy et al. (2021)](https://arxiv.org/abs/2106.11959) | Deep Learning / Tabular Data | 🟢 |
-| 06 | [Switch Transformers (MoE)](./06_Switch_Transformers_MoE) | [Fedus et al. (2021)](https://arxiv.org/abs/2101.03961) | Sparse Transformers / Scaling | ⚪ |
+| 06 | [Switch Transformers (MoE)](./06_Switch_Transformers_MoE) | [Fedus et al. (2021)](https://arxiv.org/abs/2101.03961) | Sparse Transformers / Scaling | 🟡 |
 
 **Status:** 🟢 Completed · 🟡 In Progress · ⚪ Planned
 
