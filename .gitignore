@@ -35,3 +35,11 @@
 !img_91_pred_parachute.png
 !confusion_matrix.png
 !fine_tuning_vit_loss_curves.png
+
+# Exceptions: FTtransformer model images
+!architecture_overview_FTTransformer.png
+!feature_tokenizer_FTT.png
+!FTT_attention_heatmap_token_to_token.png
+!FTT_transformer_encoder_only.png
+!kaggle_submission_FTT.png
+!loss_graph_TFF_25.3M.png
