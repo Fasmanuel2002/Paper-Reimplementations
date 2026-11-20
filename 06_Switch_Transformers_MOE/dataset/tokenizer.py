@@ -65,6 +65,11 @@ class BPETokenizer:
         self.sentinels_token = [self.token_to_index[sentinel] for sentinel in self.SENTINEL_TOKENS] 
         self.end_word_token = self.token_to_index[self.END_WORD_TOKEN]
         self.eos_token = self.token_to_index[self.EOS_TOKEN]
+    
+    def get_vocabulary_size(self) -> int:
+            return len(self.token_to_index)
+
+    
     def split_text(self, text : str) -> list[str]:
         """
         Split a string into a subword of tokens using a learning BPE merges
@@ -121,3 +126,26 @@ class BPETokenizer:
             tokens.append(self.index_to_token.get(token_id, self.UNKNOWN_TOKEN))
 
         return self.join_text(tokens)
+
+    """
+    Starting the BPE learning process, which consists of the following steps:
+    1. Initialize the vocabulary with individual characters and special tokens.
+    2. Count the frequency of each word in the corpus.
+    3. Iteratively merge the most frequent pairs of tokens to create new subword tokens.
+    4. Update the vocabulary and tokenized corpus with the new subword tokens.
+    """
+    def bpe_initialize(self, dataset : list[str]) -> tuple[list[list[str]], set[str]]:
+        """
+        Implements the initialization step of the byte pair encoding algorithm
+        """
+        corpus = []
+        vocabulary = {self.END_WORD_TOKEN}
+        for paragrahp in dataset:
+            for word in paragrahp.split(" "):
+                chars = list(word) #Converting the words in chars
+                chars.insert(len(word), self.END_WORD_TOKEN)
+                corpus.append(chars)
+
+                vocabulary.update(chars)
+
+        return corpus, vocabulary
