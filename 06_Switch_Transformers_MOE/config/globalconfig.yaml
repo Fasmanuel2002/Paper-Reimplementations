@@ -1,0 +1,39 @@
+
+project:
+  name: Switch_Transformers_MOE
+  description: Switch Transformers with Mixture of Experts
+  seed : 42
+  device : cuda
+
+model:
+  name: SwitchTransformer
+  vocab_size: 8192
+  d_model: 512
+  num_heads: 8
+  d_ff: 2048
+  num_encoder_layers: 6
+  num_decoder_layers: 6
+  dropout: 0.1
+
+  # Switch Transformer specific parameters
+  num_experts: 4
+  expert_every_n_layers: 2
+  capacity_factor: 1.25
+  evaluation_capacity_factor: 2.0
+  auxiliary_loss_alpha: 0.01
+  router_fp32: true
+  init_scale: 0.01
+  expert_dropout: 0.0
+
+
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  num_epochs: 10
+  optimizer: AdamW  
+  loss_function: CrossEntropyLoss
+
+scheduler:
+  type: StepLR
+  step_size: 5
+  gamma: 0.1
