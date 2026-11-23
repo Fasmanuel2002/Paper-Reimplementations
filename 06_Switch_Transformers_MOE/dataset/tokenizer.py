@@ -134,6 +134,41 @@ class BPETokenizer:
     3. Iteratively merge the most frequent pairs of tokens to create new subword tokens.
     4. Update the vocabulary and tokenized corpus with the new subword tokens.
     """
+
+    def learn_bpe(self, dataset : list[str], num_merges : int) -> tuple[list[tuple[str, str]], list[list[str]], set[str]]:
+        """
+        Learns byte pair encoding (BPE) merge operations from a dataset:
+        # Step 1: Initialize corpus as a list of list of characters
+        # Step 2: Count all the pair frequencies
+        # Step 3: Pick the most frequent pair
+        # Step 4: Merge that pair in every word of the corpus
+        """
+        corpus, vocabulary = self.bpe_initialize(dataset=dataset) #Step 1
+
+        merges = []
+        for _ in tqdm.tqdm(range(num_merges), desc="Learning BPE merges"):
+            pair_freqs = self.get_pair_frequencies(corpus=corpus) #Step 2
+            if not pair_freqs:
+                break
+
+            most_freq_pair, freq = pair_freqs.most_common(1)[0] #Step 3
+            if freq < 1:
+                break #If there are not more pairs to merge
+
+            merges.append(most_freq_pair)
+            new_token = most_freq_pair[0] + most_freq_pair[1]
+            vocabulary.add(new_token)
+
+            #Step 4: Merge that pair in every word of the corpus
+            new_corpus = []
+            for word in corpus:
+                new_word = self.merge_pair_in_words(word=word, pair_to_merge=most_freq_pair)
+                new_corpus.append(new_word)
+            corpus = new_corpus
+
+        #Returning the list of merges, the vocabulary, and the final tokenized corpus
+        return merges, corpus, vocabulary
+  
     def bpe_initialize(self, dataset : list[str]) -> tuple[list[list[str]], set[str]]:
         """
         Implements the initialization step of the byte pair encoding algorithm
@@ -149,3 +184,35 @@ class BPETokenizer:
                 vocabulary.update(chars)
 
         return corpus, vocabulary
+
+
+    def get_pair_frequencies(self, corpus : list[list[str]]) -> Counter[tuple[str,str], int]:
+        """
+        Calculates the frequency of adjacent characters pairs in a corpus
+        """
+        pairs = Counter()
+        for word in corpus:
+            #We are looping through the position of every token but the last one:
+            for i in range(len(word) - 1):
+                pair = (word[i], word[i+1])
+                pairs[pair] += 1
+        
+        return pairs
+
+    def merge_pair_in_words(self, word : list[str], pair_to_merge : tuple[str, str]) -> list[str]:
+        """
+        Merges adjacent occurrences of a specified pair of characters in a word
+        """
+
+        merged_symbol = pair_to_merge[0] + pair_to_merge[1]
+        index = 0
+        new_word = []
+
+        while index < len(word):
+            if index < len(word) - 1 and (word[index], word[index + 1]) == pair_to_merge:
+                new_word.append(merged_symbol)
+                index += 2
+            else:
+                new_word.append(word[index])
+                index += 1
+        return new_word
