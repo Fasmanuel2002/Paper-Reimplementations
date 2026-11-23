@@ -1,7 +1,8 @@
 from collections import Counter
+from pathlib import Path
 import tqdm
 import string
-
+import json
 
 class BPETokenizer:
     """
@@ -24,6 +25,7 @@ class BPETokenizer:
         self, 
         texts : list[str] | str,
         vocabulary: list[str] | None = None,
+        merges: list[tuple[str, str]] | None = None,
         num_merges : int = 100,
         ) -> None:
         """Inialize the BPEWordTokenizer
@@ -49,12 +51,13 @@ class BPETokenizer:
 
             vocabulary_set.update(required_chars)
 
-            self.vocabulary = (
-                [self.PAD_TOKEN, self.UNKNOWN_TOKEN, *self.SENTINEL_TOKENS, self.END_WORD_TOKEN, self.EOS_TOKEN]
-                + sorted(vocabulary_set))
+            specials_tokens = [self.PAD_TOKEN, self.UNKNOWN_TOKEN, *self.SENTINEL_TOKENS, self.END_WORD_TOKEN, self.EOS_TOKEN]
+            self.vocabulary = specials_tokens + sorted(vocabulary_set - set(specials_tokens)) #To eliminate END_WORD_TOKEN its on bpe_initialize
         else:
+            if merges is None:
+                raise ValueError("If a vocabulary is provided, merges must also be provided.")
             self.vocabulary = vocabulary
-            self.merges = [] #When there is a vocabulary not necesary
+            self.merges = [tuple(merge) for merge in merges]  
         
         #Building the mapping and the vocabulary size
         self.vocabulary_size = len(self.vocabulary)
@@ -65,6 +68,9 @@ class BPETokenizer:
         self.sentinels_token = [self.token_to_index[sentinel] for sentinel in self.SENTINEL_TOKENS] 
         self.end_word_token = self.token_to_index[self.END_WORD_TOKEN]
         self.eos_token = self.token_to_index[self.EOS_TOKEN]
+
+        # Special tokens that must be decodes as standalone words
+        self.special_tokens_set = {self.PAD_TOKEN, self.UNKNOWN_TOKEN, self.EOS_TOKEN, *self.SENTINEL_TOKENS, }
     
     def get_vocabulary_size(self) -> int:
             return len(self.token_to_index)
@@ -91,7 +97,13 @@ class BPETokenizer:
         words = []
         current_word = []
         for token in tokens:
-            if token.endswith(self.END_WORD_TOKEN): #Check if finish with the END_WORD token "</w>"
+            if token in self.special_tokens_set:
+                if current_word:
+                    words.append("".join(current_word))
+                    current_word = []
+                words.append(token)
+
+            elif token.endswith(self.END_WORD_TOKEN): #Check if finish with the END_WORD token "</w>"
                 current_word.append(token.replace(self.END_WORD_TOKEN, "")) #Removing the end of the word marker
                 words.append("".join(current_word))
                 current_word = []
@@ -176,7 +188,7 @@ class BPETokenizer:
         corpus = []
         vocabulary = {self.END_WORD_TOKEN}
         for paragrahp in dataset:
-            for word in paragrahp.split(" "):
+            for word in paragrahp.split():
                 chars = list(word) #Converting the words in chars
                 chars.insert(len(word), self.END_WORD_TOKEN)
                 corpus.append(chars)
@@ -216,3 +228,27 @@ class BPETokenizer:
                 new_word.append(word[index])
                 index += 1
         return new_word
+
+    def save(self, path : str | Path) -> None:
+        """
+        Saves the tokenizer's vocabulary and merges to a specified path.
+        """
+        path = Path(path)
+        path.mkdir(parents=True, exist_ok=True)
+        to_json = {
+            "vocabulary": self.vocabulary,
+            "merges": self.merges
+        }
+        with open(path / "tokenizer_config.json", "w") as f:
+            json.dump(to_json, f, indent=4)
+
+    @classmethod
+    def load(cls, path : str | Path) -> "BPETokenizer":
+        """
+        Loads the tokenizer's vocabulary and merges from a specified path.
+        """
+        path = Path(path)
+        with open(path / "tokenizer_config.json", "r") as f:
+            config = json.load(f)
+        
+        return cls(texts=[], vocabulary=config["vocabulary"], merges=config["merges"], num_merges=0)
