@@ -44,7 +44,6 @@ def collate_fn(data, pad_id):
     attention_mask = (inputs_padded != pad_id).int()
     start = torch.full((targets_padded.shape[0],1), pad_id, dtype=targets_padded.dtype) #Make a column of start tokens
     decoder_inputs_ids = torch.cat([start, targets_padded[:, :-1]], dim=1) #Remove the last column
-    print(len(decoder_inputs_ids[1]))
     #Applying so the CrossEntropyIgnore all the data that is not masked    
     targets_padded[targets_padded == pad_id] = -100
     return {
