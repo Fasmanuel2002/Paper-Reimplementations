@@ -15,7 +15,7 @@ def create_dataloaders(train_dataset : C4SpanCorruptionDataset,
         batch_size=batch_size,
         shuffle=True,
         collate_fn=partial(collate_fn, pad_id=pad_id),
-        num_workers=num_workers
+        num_workers=num_workers,
         pin_memory=True, #Faster Transfer for GPU
         persistent_workers=True, #Workers stay alive between epochs,
         drop_last=True #If the batch is little

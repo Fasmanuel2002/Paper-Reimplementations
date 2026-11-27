@@ -47,8 +47,8 @@ def collate_fn(data, pad_id):
     #Applying so the CrossEntropyIgnore all the data that is not masked    
     targets_padded[targets_padded == pad_id] = -100
     return {
-        "input": inputs_padded, 
+        "inputs_ids": inputs_padded, 
         "attention_mask": attention_mask, 
         "decoder_inputs_ids": decoder_inputs_ids, 
-        "targets_padded": targets_padded
+        "labels": targets_padded
         }
