@@ -70,11 +70,11 @@ class AttentionHead(nn.Module):
 
     
     def forward(self, x_q : torch.Tensor, x_kv : torch.Tensor, attention_mask: torch.Tensor):
-        q = self.queries(x_q) #Batch Size, Sequence Lenght, Head_size
-        k = self.keys(x_kv) #Batch Size, Sequence Lenght, Head_size
-        v = self.values(x_kv) #Batch Size, Sequence Lenght, Head_size
+        q = self.queries(x_q) #Batch Size, T_q, Head_size
+        k = self.keys(x_kv) #Batch Size, T_KV, Head_size
+        v = self.values(x_kv) #Batch Size, T_KV , Head_size
     
-        wei_matrix = (q @ k.transpose(-2,-1)) / (self.head_size ** 0.5) #B, T, C @ B, C, T -> B, T, T
+        wei_matrix = (q @ k.transpose(-2,-1)) / (self.head_size ** 0.5) #B, T_q, C @ B, C, T_KV -> B, T_q, T_KV
         wei_matrix = wei_matrix.masked_fill(attention_mask == 0, float("-inf")) # mask: (B, 1, T) or (T, T), 1 = attend, 0 = block
         wei_matrix = F.softmax(wei_matrix, dim=-1) 
     
