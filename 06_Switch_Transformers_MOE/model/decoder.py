@@ -5,6 +5,31 @@ import torch.nn.functional as F
 from model.layers import MultiHeadAttention, MLP
 
 
+class Decoder(nn.Module):
+    """
+    Decoder transformer from attention is all you need
+    """
+    def __init__(self, num_embeddings : int, sequence_lenght : int, num_heads : int, n_layers : int, dimensionality_ff : int, token_embedding_table : nn.Embedding ,dropout : float) -> None:
+        super().__init__()
+        self.token_embedding_table = token_embedding_table
+        self.positional_encoding = nn.Embedding(num_embeddings=sequence_lenght, embedding_dim=num_embeddings)
+        self.decoder_blocks = nn.ModuleList([DecoderBlock(n_embeddings=num_embeddings, number_heads=num_heads, dimensionality_ff=dimensionality_ff, dropout=dropout) for _ in range(n_layers)])
+        self.final_norm = nn.RMSNorm(num_embeddings)
+
+    def forward(self, idx : torch.Tensor, encoder_mask : torch.Tensor, casual_mask : torch.Tensor, enc_hidden_states : torch.Tensor):
+        B, T = idx.shape
+        tokens_embeddings = self.token_embedding_table(idx)
+
+        positional_embeddings = self.positional_encoding(torch.arange(T, device=idx.device))
+        x = tokens_embeddings + positional_embeddings
+
+        attention_weights = None
+        for decoder_block in self.decoder_blocks:
+            x, attention_weights = decoder_block(x, encoder_mask, casual_mask, enc_hidden_states)
+
+        x = self.final_norm(x)
+        return x, attention_weights
+
 
 class DecoderBlock(nn.Module):
     """
