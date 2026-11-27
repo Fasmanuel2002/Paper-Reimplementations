@@ -11,9 +11,9 @@ class Encoder(nn.Module):
     """
     Encoder transformer from attention is all you need
     """
-    def __init__(self, vocab_size: int, num_embeddings : int, sequence_lenght : int, num_heads : int, n_layers : int, dimensionality_ff : int, dropout : float) -> None:
+    def __init__(self, num_embeddings : int, sequence_lenght : int, num_heads : int, n_layers : int, dimensionality_ff : int, token_embedding_table : nn.Embedding, dropout : float) -> None:
         super().__init__()
-        self.token_embedding_table = nn.Embedding(num_embeddings=vocab_size, embedding_dim=num_embeddings) #The embedding table put it in the final layer
+        self.token_embedding_table = token_embedding_table
         self.positional_encoding = nn.Embedding(num_embeddings=sequence_lenght, embedding_dim=num_embeddings) #The positional Encoding
         self.encoder_blocks = nn.ModuleList([EncoderBlock(n_embeddings=num_embeddings, num_heads=num_heads, dimensionality_ff=dimensionality_ff, dropout=dropout) for _ in range(n_layers)])
         self.final_norm = nn.RMSNorm(num_embeddings)
@@ -23,7 +23,7 @@ class Encoder(nn.Module):
         B, T = idx.shape #idx and targes are both (B,T) tensor of integers
         tokens_embeddings = self.token_embedding_table(idx)
         positional_embeddings = self.positional_encoding(torch.arange(T, device=idx.device))
-        x = tokens_embeddings +positional_embeddings
+        x = tokens_embeddings + positional_embeddings
         all_attention_weights = []
         
         if return_attention:
